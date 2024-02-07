@@ -9,6 +9,8 @@ class TSP:
         self.state_score = self.calculate_score(self.state_list)
         self.temperature = kwargs["temperature"]
         self.neighbours_number = kwargs["neighbours_number"]
+        self.saved_state_list = []
+        self.saved_state_score = self.state_score
 
     @classmethod
     def config(cls,**kwargs):
@@ -47,8 +49,8 @@ class TSP:
         return math.sqrt(((y2-y)**2)+((x2-x)**2))
 
     def save_as_html(self,html_file_name):
-        cord = [[x["lat"],x["lng"]] for x in self.state_list]
-        create_map.c_map(self.state_list,cord,html_file_name)
+        cord = [[x["lat"],x["lng"]] for x in self.saved_state_list]
+        create_map.c_map(self.saved_state_list,cord,html_file_name)
         print(f"successfully saved as {html_file_name}.html")
 
     def simulated_annealing(self):
@@ -59,12 +61,16 @@ class TSP:
                 self.state_list
             )
 
-            delta = best_ngbr_score / self.temperature
+            delta = (best_ngbr_score-self.state_score)
 
-            if best_ngbr_score < self.state_score or (delta < 1 and delta >= randint(0,1)):
+            if delta < 0 or randint(0,1) > delta/self.temperature:
                 self.state_score = best_ngbr_score
                 self.state_list = best_ngbr_lst
-                print(self.temperature,self.state_score)
+
+            if self.saved_state_score > self.state_score:
+                self.saved_state_score = self.state_score
+                self.saved_state_list = self.state_list
+                print(self.temperature,self.saved_state_score)
 
             self.temperature-=1
 
